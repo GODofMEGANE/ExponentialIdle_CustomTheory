@@ -1,0 +1,2 @@
+# ExponentialIdle_CustomTheory
+Exponential Idleの自作カスタム理論を保存します

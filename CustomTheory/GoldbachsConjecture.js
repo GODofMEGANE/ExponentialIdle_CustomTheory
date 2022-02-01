@@ -12,7 +12,7 @@ var version = 1;
 
 var currency;
 var n, p1, p2;
-var mile_1;
+var mile_1, mile_2;
 
 var alwaysShowRefundButtons = () => true;
 
@@ -59,7 +59,7 @@ var init = () => {
 
     ///////////////////////
     //// Milestone Upgrades
-    theory.setMilestoneCost(new LinearCost(2, 100));
+    theory.setMilestoneCost(new LinearCost(2, 1));
 
     {
         mile_1 = theory.createMilestoneUpgrade(0, 1);
@@ -67,11 +67,18 @@ var init = () => {
         mile_1.info = "It show sum of two primes";
         mile_1.boughtOrRefunded = (_) => theory.invalidateTertiaryEquation();
     }
+    {
+        mile_2 = theory.createMilestoneUpgrade(1, 1);
+        mile_2.description = "+Info";
+        mile_2.info = "It show difference between n and sum of primes";
+        mile_2.boughtOrRefunded = (_) => theory.invalidateTertiaryEquation();
+    }
     updateAvailability();
 }
 
 var updateAvailability = () => {
     mile_1.isAvailable = true;
+    mile_2.isAvailable = true;
 }
 
 var tick = (elapsedTime, multiplier) => {
@@ -85,11 +92,15 @@ var getPrimaryEquation = () => {
 
 var getSecondaryEquation = () => "P_N=Nth Prime, " + theory.latexSymbol + "=n-4";
 var getTertiaryEquation = () => {
-    if(mile_1.level == 1) return ("P_i="+findPrime(getp1(p1.level))+", P_j="+findPrime(getp2(p2.level))+", P_i+P_j="+(findPrime(getp1(p1.level))+findPrime(getp2(p2.level))));
-    else return ("P_i="+findPrime(getp1(p1.level))+", P_j="+findPrime(getp2(p2.level)));
+    var result = "P_i="+findPrime(getp1(p1.level))+", P_j="+findPrime(getp2(p2.level));
+    if(mile_1.level == 1) result += ",P_i+P_j="+(findPrime(getp1(p1.level))+findPrime(getp2(p2.level)));
+    if(mile_2.level == 1) result += ",n-(P_i+P_j)="+(getn(n.level) - findPrime(getp1(p1.level))-findPrime(getp2(p2.level)));
+    return result;
 }
-var getPublicationMultiplier = (tau) => tau.pow(0.3) / BigNumber.THREE;
-var getPublicationMultiplierFormula = (symbol) => "\\frac{{" + symbol + "}^{0.3}}{3}";
+
+// (100^x)/y=5,(500^x)/y=(5^2)*0.97->(x,y)=(0.981,18.331) τ=100,乗数=1で出版すると乗数=5，τ=100,乗数=5で出版すると乗数=25*0.97 τ=100での出版を繰り返す度に乗数が0.97倍される
+var getPublicationMultiplier = (tau) => tau.pow(0.981) / 18.331;
+var getPublicationMultiplierFormula = (symbol) => "\\frac{{" + symbol + "}^{0.981}}{18.331}";
 var getTau = () => (getn(n.level)-4) * theory.publicationMultiplier;
 var get2DGraphValue = () => (findPrime(getp1(p1.level))+findPrime(getp2(p2.level)));
 
